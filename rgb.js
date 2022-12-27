@@ -1,4 +1,4 @@
-function col(el,type){el.style[type]="red"}
+function rgb_el(el,type){el.style[type]="red"}
 var settings={
   step=2.5,
   speed=100
