@@ -1,8 +1,8 @@
 function MsToTime(ms){
-    var year=0,day=0,hr=0,min=0,sec=0,milsec=0,given=ms,res,pad=(n,z=2)=>('00000'+n||"").slice(-z);
-    while(given>=1000){
+    var year=0,day=0,hr=0,min=0,sec=0,milsec=ms,res,pad=(n,z=2)=>('00000'+n||"").slice(-z);
+    while(milsec>=1000){
         sec++
-        given-=1000
+        milsec-=1000
     }
     while(sec>=60){
         min++
