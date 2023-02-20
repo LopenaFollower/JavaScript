@@ -23,6 +23,6 @@ function collatzConjecture(num,prev,peak,b){
                 }
                 collatzConjecture(current,step,highest,base);
             }
-        }else log("Iterations: "+step.toLocaleString()+"\nHighest: "+peak.toLocaleString()+"\nbase: "+base.toLocaleString());
+        }else log("Iterations: "+step.toLocaleString()+"\nHighest: "+peak.toLocaleString()+"\nBase: "+base.toLocaleString());
     }else log("must be a number");
 }
