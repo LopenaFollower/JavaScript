@@ -9,24 +9,20 @@ function collatzConjecture(num,prev,peak,b){
             if(current%2===1&&current>1){
                 current=(current*3)+1;
                 step++;
-                log("× "+current.toLocaleString())
-                setTimeout(()=>{
-                    if(highest<num){
-                        highest=num;
-                    }
-                    collatzConjecture(current,step,highest,base)
-                },50)
+                log("× "+current.toLocaleString());
+                if(highest<num){
+                    highest=num;
+                }
+                collatzConjecture(current,step,highest,base);
             }else if(current%2===0&&current>1){
                 current=current/2;
                 step++;
-                log("÷ "+current.toLocaleString())
-                setTimeout(()=>{
-                    if(highest<=num){
-                        highest=num;
-                    }
-                    collatzConjecture(current,step,highest,base)
-                },50)
+                log("÷ "+current.toLocaleString());
+                if(highest<=num){
+                    highest=num;
+                }
+                collatzConjecture(current,step,highest,base);
             }
-        }else{log("Iterations: "+step.toLocaleString()+"\nHighest: "+peak.toLocaleString()+"\nbase: "+base.toLocaleString())}
-    }else{log("must be a number")}
+        }else log("Iterations: "+step.toLocaleString()+"\nHighest: "+peak.toLocaleString()+"\nbase: "+base.toLocaleString());
+    }else log("must be a number");
 }
