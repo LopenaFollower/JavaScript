@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         !  MooMoo.io
-// @version      1.21
+// @version      1.3
 // @description
 // @match        *://*.moomoo.io/*
 // @require      https://greasyfork.org/scripts/456235-moomoo-js/code/MooMoojs.js?version=1159501
@@ -9,9 +9,8 @@
 const MooMoo=(function MooMooJS_beta(){})[69]
 const{log}=console;
 function toRad(angle) {
-    return angle * 0.01745329251;
+    return angle*0.01745329251;
 }
-var insta=false;
 function hit(a){
     MooMoo.myPlayer.hit(a)
 }
@@ -34,8 +33,8 @@ let nearestEnemyDistance = activePlayerManager.getClosestEnemyDistance();
 var mouseX;
 var mouseY;
 var width;
-var automill=false;
 var height;
+var mouse_angle,primary,secondary,chatbox=false,insta=false,autoprim=false,autosec=false,automill=false;
 MooMoo.onGameLoad=()=>{
     let cvs = document.getElementById("gameCanvas");
     cvs.addEventListener("mousemove", e => {
@@ -69,19 +68,27 @@ function booster_hat(){
         hat(12);
     }
 }
-var primary,secondary,chatbox=false
 setInterval(()=>{
-    if(automill){
-        let mill=MooMoo.myPlayer.inventory.mill;
-        MooMoo.myPlayer.place(mill,Math.atan2(mouseY-height/2,mouseX-width/2)+toRad(145));
-        MooMoo.myPlayer.place(mill,Math.atan2(mouseY-height/2,mouseX-width/2)+toRad(215));
-    }
     primary=MooMoo.myPlayer.inventory.primary;
     secondary=MooMoo.myPlayer.inventory.secondary;
     if(document.activeElement.id.toLowerCase()=='chatbox'){
         chatbox=true
     }else{
         chatbox=false
+    }
+    mouse_angle=Math.atan2(mouseY-height/2,mouseX-width/2)
+},0);
+setInterval(()=>{
+    if(automill){
+        let mill=MooMoo.myPlayer.inventory.mill;
+        MooMoo.myPlayer.place(mill,mouse_angle+toRad(145));
+        MooMoo.myPlayer.place(mill,mouse_angle+toRad(215));
+    }
+    if(autoprim){
+        MooMoo.sendPacket("5",primary,true)
+    }
+    if(autosec){
+        MooMoo.sendPacket("5",secondary,true)
     }
 },100);
 document.addEventListener("keydown",e=>{
@@ -90,15 +97,15 @@ document.addEventListener("keydown",e=>{
     }
     if(e.keyCode==86&&!chatbox){
         let spike=MooMoo.myPlayer.inventory.spike;
-        MooMoo.myPlayer.place(spike,Math.atan2(mouseY-height/2,mouseX-width/2));
+        MooMoo.myPlayer.place(spike,mouse_angle);
     }
     if(e.keyCode==70&&!chatbox){
         let trap=MooMoo.myPlayer.inventory.trap;
-        MooMoo.myPlayer.place(trap,Math.atan2(mouseY-height/2,mouseX-width/2));
+        MooMoo.myPlayer.place(trap,mouse_angle);
     }
     if(e.keyCode==72&&!chatbox){
         let turret=MooMoo.myPlayer.inventory.turret;
-        MooMoo.myPlayer.place(turret,Math.atan2(mouseY-height/2,mouseX-width/2));
+        MooMoo.myPlayer.place(turret,mouse_angle);
     }
     if(e.keyCode==9){
         e.preventDefault();
@@ -119,25 +126,28 @@ document.addEventListener("keydown",e=>{
 })
 MooMoo.on("gatherAnimation",()=>{
     if(insta){
+        autosec=true
         MooMoo.sendPacket("5",secondary,true)
         hit(MooMoo.ActivePlayerManager.getClosestEnemyAngle())
         acc(21)
         hat(53);
         let wait=0;
         if(secondary==9){
-            wait=400;
+            wait=450;
         }else if(secondary==12){
-            wait=700;
+            wait=750;
         }else if(secondary==15){
-            wait=1500
+            wait=1550
         }
         setTimeout(()=>{
+            MooMoo.sendPacket("5",secondary,true)
             booster_hat()
             acc(11)
             setTimeout(()=>{
-                MooMoo.sendPacket("5",primary,true)
+                autosec=false
                 insta=false;
+                MooMoo.sendPacket("5",primary,true)
             },wait);
-        },200);
+        },100);
     }
 });
