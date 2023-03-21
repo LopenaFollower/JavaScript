@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         !  MooMoo.io
-// @version      1.3
+// @version      1.34
 // @description
 // @match        *://*.moomoo.io/*
 // @require      https://greasyfork.org/scripts/456235-moomoo-js/code/MooMoojs.js?version=1159501
@@ -29,7 +29,7 @@ let nearestEnemy = activePlayerManager.getClosestEnemy();
 let nearestTeammate = activePlayerManager.getClosestTeammate();
 let nearestPlayer = activePlayerManager.getClosestPlayer();
 let nearestEnemyAngle = MooMoo.ActivePlayerManager.getClosestEnemyAngle();
-let nearestEnemyDistance = activePlayerManager.getClosestEnemyDistance();
+let nearestEnemyDistance = MooMoo.ActivePlayerManager.getClosestEnemyDistance();
 var mouseX;
 var mouseY;
 var width;
@@ -44,21 +44,6 @@ MooMoo.onGameLoad=()=>{
         height = cvs.clientHeight;
     });
 }
-
-MooMoo.addEventListener("updateHealth",(data)=>{
-    if(MooMoo.myPlayer.sid===data[0]){
-        if (data[1]<100) {
-            let food=MooMoo.myPlayer.inventory.food;
-            setTimeout(()=>{
-                MooMoo.myPlayer.place(food)
-                MooMoo.myPlayer.place(food)
-            },110)
-        }
-        if(data[1]<60){
-            hat(6)
-        }
-    }
-})
 function booster_hat(){
     if (MooMoo.myPlayer.y<2400){
         hat(15);
@@ -124,30 +109,46 @@ document.addEventListener("keydown",e=>{
         },25);
     }
 })
-MooMoo.on("gatherAnimation",()=>{
-    if(insta){
-        autosec=true
-        MooMoo.sendPacket("5",secondary,true)
-        hit(MooMoo.ActivePlayerManager.getClosestEnemyAngle())
-        acc(21)
-        hat(53);
-        let wait=0;
-        if(secondary==9){
-            wait=450;
-        }else if(secondary==12){
-            wait=750;
-        }else if(secondary==15){
-            wait=1550
-        }
-        setTimeout(()=>{
-            MooMoo.sendPacket("5",secondary,true)
-            booster_hat()
-            acc(11)
+MooMoo.addEventListener("updateHealth",(data)=>{
+    if(MooMoo.myPlayer.sid===data[0]){
+        if (data[1]<100) {
+            let food=MooMoo.myPlayer.inventory.food;
             setTimeout(()=>{
-                autosec=false
-                insta=false;
-                MooMoo.sendPacket("5",primary,true)
-            },wait);
-        },100);
+                MooMoo.myPlayer.place(food)
+            },110)
+        }
+        if(data[1]<70&&MooMoo.ActivePlayerManager.getClosestEnemyDistance()<300){
+            hat(6)
+            acc(21)
+        }
+    }
+})
+MooMoo.on("gatherAnimation",(data)=>{
+    if(MooMoo.myPlayer.sid===data[0]){
+        if(insta){
+            autosec=true
+            MooMoo.sendPacket("5",secondary,true)
+            hit(MooMoo.ActivePlayerManager.getClosestEnemyAngle())
+            acc(21)
+            hat(53);
+            let wait=0;
+            if(secondary==9){
+                wait=450;
+            }else if(secondary==12){
+                wait=750;
+            }else if(secondary==15){
+                wait=1600
+            }
+            setTimeout(()=>{
+                MooMoo.sendPacket("5",secondary,true)
+                booster_hat()
+                acc(11)
+                setTimeout(()=>{
+                    autosec=false
+                    insta=false;
+                    MooMoo.sendPacket("5",primary,true)
+                },wait);
+            },100);
+        }
     }
 });
