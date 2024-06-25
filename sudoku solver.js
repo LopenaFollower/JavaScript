@@ -1,6 +1,6 @@
 //==UserScript==
 // @name sudoku solver
-// @version 0.1
+// @version 0.14
 // @description
 // @match *://sudoku.com/*
 // @run-at document-end
