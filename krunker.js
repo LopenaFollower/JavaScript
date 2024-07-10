@@ -1,12 +1,12 @@
 // ==UserScript==
-// @name		 Krunker.IO Aimbot & ESP
-// @version	  1.0.7
-// @description  aimlock to nearest enemy, esp, tracers
-// @match		*://krunker.io/*
-// @exclude	  *://krunker.io/social*
-// @exclude	  *://krunker.io/editor*
-// @run-at	   document-start
-// @require	  https://unpkg.com/three@0.150.0/build/three.min.js
+// @name Krunker.IO Aimbot & ESP
+// @version 1.0.7
+// @description aimlock to nearest enemy, esp, tracers
+// @match *://krunker.io/*
+// @exclude *://krunker.io/social*
+// @exclude	*://krunker.io/editor*
+// @run-at document-start
+// @require https://unpkg.com/three@0.150.0/build/three.min.js
 // ==/UserScript==
 
 const THREE=window.THREE;
@@ -16,8 +16,14 @@ const settings={
 	aimbot:true,
 	useRightMouse:true,
 	esp:true,
-	tracers:true
+	tracers:true,
+	fov:90
 };
+const constraints={
+	fov:function(v){
+		return Math.max(0,Math.min(360,v));
+	}
+}
 const hotkeys={
 	KeyB:"aimbot",
 	KeyL:"useRightMouse",
@@ -108,7 +114,7 @@ function animate(){
 		Array.prototype.push=spy;
 		return;
 	}
-	let c=0,target,minD=1/0,maxA=0;
+	let c=0,target,maxA=0;
 	tempObject.matrix.copy(plr.matrix).invert();
 	for(let i=0;i<plrs.length;i++){
 		const cplr=plrs[i];
@@ -130,22 +136,14 @@ function animate(){
 		linePos.setXYZ(c++,tempVector.x,tempVector.y,tempVector.z);
 		cplr.visible=settings.esp||cplr.visible;
 		cplr.box.visible=settings.esp;
-		if(mode==0){
-			let dist=cplr.position.distanceTo(plr.position);
-			if(dist<minD&&cplr.visible){
-				target=cplr;
-				minD=dist;
-			}
-		}else if(mode==1){
-			aimVector.setScalar(0);
-			cplr.children[0].children[0].localToWorld(aimVector);
-			aimObject.position.copy(plr.position);
-			aimObject.lookAt(aimVector);
-			let angle=Math.abs(norm(plr.rotation.y-aimObject.rotation.y-Math.PI)-Math.PI);
-			if(angle>maxA&&angle>Math.PI*.7&&cplr.visible){
-				target=cplr;
-				maxA=angle;
-			}
+		aimVector.setScalar(0);
+		cplr.children[0].children[0].localToWorld(aimVector);
+		aimObject.position.copy(plr.position);
+		aimObject.lookAt(aimVector);
+		let angle=Math.abs(norm(plr.rotation.y-aimObject.rotation.y-Math.PI)-Math.PI)*180/Math.PI;
+		if(angle>maxA&&angle>180-settings.fov/2&&cplr.visible){
+			target=cplr;
+			maxA=angle;
 		}
 	}
 	linePos.needsUpdate=true;
@@ -177,6 +175,7 @@ holder.innerHTML=`<style>
 .gui-header span{font-size:16px}
 .gui-header:hover{background:#000}
 .gui-item-value{font-size:.8em}
+.gui-item-value.number{border:1px solid #111;padding: 0px 5px}
 .gui-content{transition-timing-function:linear;transition-duration:.1s;position:relative;z-index:997;top:0px}
 .gui-content .gui-item-value{font-weight:900}
 </style>
@@ -242,32 +241,39 @@ function createGUI(){
 			if(shortKey.startsWith("Key"))shortKey=shortKey.slice(3);
 			name=`[${shortKey}] ${name}`;
 		}
-		let item=fromHtml(`<div class=gui-item>
-			<span>${name}</span>
-			<span class=gui-item-value></span>
-		</div>`);
+		let type=typeof settings[prop],item;
+		switch(type){
+			case"boolean":
+				item=fromHtml(`<div class=gui-item><span>${name}</span><span class=gui-item-value></span></div>`);
+				item.onclick=function(){
+					settings[prop]=!settings[prop];
+					updateVal();
+				}
+				break;
+			case"number":
+				item=fromHtml(`<div class=gui-item><span>${name}</span><span class="gui-item-value number"contenteditable></span></div>`);
+				item.oninput=function(){
+					settings[prop]=constraints[prop](Number(val.innerText)|0);
+					updateVal();
+				}
+				break;
+		}
 		let val=item.querySelector(".gui-item-value");
 		function updateVal(){
 			let v=settings[prop];
-			val.innerText=v?"ON":"OFF";
-			val.style.color=v?"#0f0":"red";
+			switch(typeof v){
+				case"boolean":
+					val.innerText=v?"ON":"OFF";
+					val.style.color=v?"#0f0":"red";
+					break;
+				case"number":
+					if(v!=Number(val.innerText))val.innerText=v.toFixed();
+					val.style.color="#ae81ff";
+					break
+			}
 		}
 		updateVal();
-		item.onclick=function(){
-			settings[prop]=!settings[prop];
-		}
 		cont.appendChild(item);
-		let p=`__${prop}`;
-		settings[p]=settings[prop];
-		Object.defineProperty(settings,prop,{
-			get(){
-				return this[p];
-			},
-			set(v){
-				this[p]=v;
-				updateVal();
-			}
-		});
 	}
 	return gui;
 }
