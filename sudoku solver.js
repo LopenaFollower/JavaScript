@@ -140,7 +140,7 @@
 		ongoing=true;
 		attempts=0;
 		let raw=getBoard();
-		document.getElementById("INPUT").value=raw.replaceAll("0",".").match(/.{27}/g).map(e=>e.match(/.{9}/g).map(c=>c.match(/.{3}/g).join(" ")).join("\n")).join("\n\n");
+		document.getElementById("DISPLAY").value=raw.replaceAll("0",".").match(/.{27}/g).map(e=>e.match(/.{9}/g).map(c=>c.match(/.{3}/g).join(" ")).join("\n")).join("\n\n");
 		const data=(raw.match(/.{9}/g)||[]).map(e=>e.split("").map(n=>parseInt(n)));
 		if(raw.length<81)return setStatus("Invalid Board");
 		let solved=await solveSudoku(data);
@@ -162,11 +162,11 @@
 		const input=document.createElement("textarea");
 		const width=parseFloat(getComputedStyle(board).getPropertyValue("width"))/3;
 		input.style.width=input.style.height=width+"px";
-		input.style.letterSpacing=width*(40/833)+"px";
+		input.style.letterSpacing=width*40/833+"px";
 		input.style.fontFamily="monospace";
 		input.style.resize="none";
 		input.style.zIndex=1e4;
-		input.id="INPUT";
+		input.id="DISPLAY";
 		input.readOnly=true;
 		cont.appendChild(input);
 		const btn=document.createElement("button");
