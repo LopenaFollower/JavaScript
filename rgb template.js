@@ -1,1 +1,21 @@
-const rgb=(r=>{r={s:1,r:0xff,g:0,b:0,rg:![],gg:[],bg:![],rl:![],gl:![],bl:![],fetch:function(f="rgb"){return f.length==3?"rgb("+this[f[0]]+","+this[f[1]]+","+this[f[2]]+")":"rgb("+this.r+","+this.g+","+this.b+")"}};setInterval((m=255,f=![],t=[])=>{r.r>m&&(r.rg=f,r.r=m);r.g>m&&(r.gg=f,r.g=m);r.b>m&&(r.bg=f,r.b=m);r.r<0&&(r.rl=f,r.r=0);r.g<0&&(r.gl=f,r.g=0);r.b<0&&(r.bl=f,r.b=0);r.r==m&&r.g==0&&r.b==0&&(r.gg=t);r.r==m&&r.g==m&&r.b==0&&(r.rl=t);r.r==0&&r.g==m&&r.b==0&&(r.bg=t);r.r==0&&r.g==m&&r.b==m&&(r.gl=t);r.r==0&&r.g==0&&r.b==m&&(r.rg=t);r.r==m&&r.g==0&&r.b==m&&(r.bl=t);r.rg&&(r.r+=r.s);r.gg&&(r.g+=r.s);r.bg&&(r.b+=r.s);r.rl&&(r.r-=r.s);r.gl&&(r.g-=r.s);r.bl&&(r.b-=r.s)});return r})()
+class RGB{
+	c=[255,0,0];i=0;j=1;
+	constructor(step=1){
+		this.s=this.d=step;
+		const u=()=>{
+			this.l=requestAnimationFrame(u);
+			if(this.d<0?this.c[this.i]>0:this.c[this.j]<255)this.c[this.d<0?this.i:this.j]+=this.d;
+			else if(this.s+(this.d=-this.d)){
+				this.i=++this.i%3;
+				this.j=++this.j%3;
+			}
+		}
+		u();
+	}
+	stop(){
+		cancelAnimationFrame(this.l);
+	}
+	get(){
+		return"#"+this.c.map(e=>e.toString(16).padStart(2,0)).join("");
+	}
+}
