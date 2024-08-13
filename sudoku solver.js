@@ -5,7 +5,7 @@
 // @match *://sudoku.com/*
 // @run-at document-end
 //==/UserScript==
-(function(){
+javascript:(function(){
 	const board=document.querySelector("#game>canvas");
 	const ctx=board.getContext("2d");
 	function mouseevent(x,y,b,el){
@@ -26,53 +26,30 @@
 	function setStatus(t){
 		document.getElementById("STATUS").innerText=t;
 	}
-	function i2rc(i){
-		return[i%9,i/9|0];
-	}
 	function b2d(b){
-		let i=0;
-		for(;b;b>>=1,i++);
+		for(var i=0;b;b>>=1,i++);
 		return i;
 	}
 	function getMoves(b,i){
-		let[cl,rw]=i2rc(i);
-		let r1=3*(rw/3|0),c1=3*(cl/3|0);
-		let m=0;
+		let[cl,rw]=[i%9,i/9|0],r1=3*(rw/3|0),c1=3*(cl/3|0),m=0;
 		for(let r=r1,j=0;r<r1+3;r++)for(let c=c1;c<c1+3;c++,j++)m|=b[r*9+c]|b[rw*9+j]|b[j*9+cl];
 		return m^511;
 	}
 	function unique(a,i,v){
-		let[cl,rw]=i2rc(i);
-		let r1=3*(rw/3|0),c1=3*(cl/3|0);
-		let ir=9*rw,ic=cl;
-		let ur=true,uc=true,u3=true;
+		let[cl,rw]=[i%9,i/9|0],r1=3*(rw/3|0),c1=3*(cl/3|0),ir=9*rw,ic=cl,ur=1,uc=1,u3=1;
 		for(let r=r1;r<r1+3;++r)for(let c=c1;c<c1+3;++c,++ir,ic+=9){
-			let j=r*9+c;
-			if(u3&&j-i&&a[j]&v)u3=false;
-			if(ur&&ir-i&&a[ir]&v)ur=false;
-			if(uc&&ic-i&&a[ic]&v)uc=false;
-			if(!(u3||ur||uc))return false;
+			if(u3&&r*9+c-i&&a[r*9+c]&v)u3=0;
+			if(ur&&ir-i&&a[ir]&v)ur=0;
+			if(uc&&ic-i&&a[ic]&v)uc=0;
+			if(u3+ur+uc)return!1;
 		}
 		return ur||uc||u3;
 	}
 	function analyze(b){
-		let a=b.map((e,i)=>e?0:getMoves(b,i));
-		let j,l=100;
-		for(let i=0;i<81;i++)if(!b[i]){
-			let ms=a[i],ln=0;
-			for(let m=1;ms;m<<=1)if(ms&m){
-				ln++;
-				if(unique(a,i,m)){
-					a[i]=m;
-					ln=1;
-					break;
-				}
-				ms^=m;
-			}
-			if(ln<l){
-				j=i;
-				if(!(l=ln))break;
-			}
+		let a=b.map((e,i)=>e?0:getMoves(b,i)),j,l=1e2;
+		for(let i=0,n,m,ms;i<81;i++)if(!b[i]){
+			for(m=1,ms=a[i],n=0;ms;m<<=1)if(ms&m&&++n)if(unique(a,i,m)&&(n=1)&&(a[i]=m))break;else ms^=m;
+			if(n<l&&(j=i)&&!(l=n))break;
 		}
 		return[j,a[j]];
 	}
@@ -116,34 +93,31 @@
 		return nums;
 	}
 	function solve(r){
-		let b=r.split("").map(e=>e!=="0"?1<<(parseInt(e)-1):0);
-		if(s())return b.map(b2d);
-		function s(){
+		let b=r.split("").map(e=>2**--e|0),s=_=>{
 			let[i,ms]=analyze(b);
-			if(i==null)return true;
-			for(let m=1;ms;m<<=1)if(ms&m){
-				b[i]=m;
-				if(s())return true;
-				ms^=m;
-			}
+			if(i==null)return!0;
+			for(let m=1;ms;m<<=1)if(ms&m&&(b[i]=m))if(s())return!0;else ms^=m;
 			b[i]=0;
-			return false;
 		}
+		if(s())return b.map(b2d);
 	}
 	let ongoing=false;
-	async function start(){
+	async function start(a){
 		if(ongoing)return;
 		ongoing=true;
 		let raw=getBoard();
 		document.getElementById("DISPLAY").value=raw.replaceAll("0",".").match(/.{27}/g).map(e=>e.match(/.{9}/g).map(c=>c.match(/.{3}/g).join(" ")).join("\n")).join("\n\n");
 		if(raw.length<81)return setStatus("Invalid Board");
 		let solved=solve(raw);
+		console.log(solved);
 		if(!solved)return setStatus("Invalid Board");
-		setStatus("Solution Found!");
 		const c=[];
 		for(let i=0;i<81;i++)if(raw[i]=="0")c.push(i);
 		c.sort((a,b)=>solved[a]-solved[b]);
-		for(let i=0;i<c.length;i++)await placeNum(...i2rc(c[i]),solved[c[i]]);
+		for(let i=0;i<c.length;i++){
+			let n=c[i],wait=placeNum(n%9,n/9|0,solved[n]);
+			if(a)await wait;
+		}
 		ongoing=false;
 	}
 	setTimeout(()=>{
@@ -160,11 +134,16 @@
 		input.id="DISPLAY";
 		input.readOnly=true;
 		cont.appendChild(input);
-		const btn=document.createElement("button");
-		btn.style.zIndex=1e4;
-		btn.innerText="Start";
-		btn.onclick=start;
-		cont.appendChild(btn);
+		const btn1=document.createElement("button");
+		btn1.style.zIndex=1e4;
+		btn1.innerText="Solve";
+		btn1.onclick=function(){start(0)};
+		cont.appendChild(btn1);
+		const btn2=document.createElement("button");
+		btn2.style.zIndex=1e4;
+		btn2.innerText="Play";
+		btn2.onclick=function(){start(1)};
+		cont.appendChild(btn2);
 		const status=document.createElement("span");
 		status.id="STATUS";
 		cont.appendChild(status);
