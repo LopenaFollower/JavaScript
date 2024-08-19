@@ -6,15 +6,14 @@
 // @run-at document-end
 //==/UserScript==
 javascript:(function(){
-	const board=document.querySelector("#game>canvas");
-	const ctx=board.getContext("2d");
+	const board=document.querySelector("#game>canvas"),ctx=board.getContext("2d");
 	function mouseevent(x,y,b,el){
-		["mousedown","mouseup"].map(e=>new MouseEvent(e,{clientX:x,clientY:y,button:b})).forEach(e=>el.dispatchEvent(e));
+		["mousedown","mouseup"].forEach(e=>el.dispatchEvent(new MouseEvent(e,{clientX:x,clientY:y,button:b})));
 	}
+	const z=parseFloat(getComputedStyle(board).getPropertyValue("width"))/9,W=z/2;
 	function placeNum(cx,cy,n){
 		const{top,left}=board.getBoundingClientRect();
-		const s=parseFloat(getComputedStyle(board).getPropertyValue("width"))/9,w=s/2;
-		mouseevent(left+cx*s+w,top+cy*s+w,0,board);
+		mouseevent(left+cx*z+W,top+cy*z+W,0,board);
 		const el=document.querySelectorAll(".numpad-item")[n-1];
 		const{top:t,left:l}=el.getBoundingClientRect();
 		mouseevent(l,t,0,el);
@@ -23,61 +22,52 @@ javascript:(function(){
 	function setStatus(t){
 		document.getElementById("STATUS").innerText=t;
 	}
-	function b2d(b){
-		for(var i=0;b;b>>=1,i++);
-		return i;
+	function b2d(a){
+		for(var b=0;a;a>>=1,b++);
+		return b;
 	}
-	function getMoves(b,i){
-		let[cl,rw]=[i%9,i/9|0],r1=3*(rw/3|0),c1=3*(cl/3|0),m=0;
-		for(let r=r1,j=0;r<r1+3;r++)for(let c=c1;c<c1+3;c++,j++)m|=b[r*9+c]|b[rw*9+j]|b[j*9+cl];
-		return m^511;
+	function getMoves(a,b){
+		let[c,d]=[b%9,b/9|0],e=3*(d/3|0),f=3*(c/3|0),g=0;
+		for(let h=e,i=0;h<e+3;h++)for(let j=f;j<f+3;j++,i++)g|=a[h*9+j]|a[d*9+i]|a[i*9+c];
+		return g^511;
 	}
-	function unique(n,i,v){
-		let[cl,rw]=[i%9,i/9|0],r1=3*(rw/3|0),c1=3*(cl/3|0),ir=9*rw,ic=cl,a=1,b=1,c=1;
-		for(let r=r1;r<r1+3;++r)for(let c=c1;c<c1+3;++c,++ir,ic+=9){
-			if(a&&ir-i&&n[ir]&v)a=0;
-			if(b&&ic-i&&n[ic]&v)b=0;
-			if(c&&r*9+c-i&&n[r*9+c]&v)c=0;
-			if(a+b+c)return!1;
+	function unique(a,b,c){
+		let[d,e]=[b%9,b/9|0],f=9*e,g=d,h=1,i=1,j=1,k,l;
+		for(k=3*(e/3|0);k<f+3;++k)for(l=3*(d/3|0);l+3;++l,++f,g+=9)if(h&&f-d&&a[f]&c&&(h=0)||i&&g-d&&a[g]&c&&(i=0)||j&&k*9+l-d&&a[k*9+l]&c&&(j=0)||h+i+j)return!1;
+		return h+i+j;
+	}
+	function analyze(a){
+		let b=a.map((e,i)=>e?0:getMoves(a,i)),c,d=1e2,e,f,g,h;
+		for(e=0;e<81;e++)if(!a[e]){
+			for(g=1,h=b[e],f=0;h;g<<=1)if(h&g&&++f)if(unique(b,e,g)&&(f=1)&&(b[e]=g))break;else h^=g;
+			if(f<d&&(c=e)&&!(d=f))break;
 		}
-		return a||uc||c;
-	}
-	function analyze(b){
-		let a=b.map((e,i)=>e?0:getMoves(b,i)),j,l=1e2;
-		for(let i=0,n,m,ms;i<81;i++)if(!b[i]){
-			for(m=1,ms=a[i],n=0;ms;m<<=1)if(ms&m&&++n)if(unique(a,i,m)&&(n=1)&&(a[i]=m))break;else ms^=m;
-			if(n<l&&(j=i)&&!(l=n))break;
-		}
-		return[j,a[j]];
+		return[c,b[c]];
 	}
 	function getBoard(){
 		const s=board.width/9-2;
-		function rgbToHex(r,g,b){
-			return((r<<16)|(g<<8)|b).toString(16);
+		function c(a,r=[]){
+			for(let i=0,l=a.length;i<l;i+=4)r.push(a.slice(i,i+4));
+			return r;
 		}
+		const z=74,w=37,g=(v,n,m)=>n<=v&&v<=m,pa=[[910,1007],[1239,1287],[1421,1481],[1272,1396],[1659,1709],[1769,1896],[1236,1293],[1895,1963],[1949,2045]],pb=[[639,740],[916,1007],[1159,1231],[1000,1170],[1081,1151],[1100,1159],[586,672],[1147,1231],[1233,1294]];
 		function getc(cx,cy){
-			const z=74,w=37;
-			const x=board.width/2+cx*s-w,y=board.height/2+cy*s-w;
-			let d1=ctx.getImageData(x,y-z*.3,z,z),d2=ctx.getImageData(x+z*.34,y+z*.2,z,z),c1={},c2={};
-			for(let i=0;i<d1.data.length;i+=4)for(let j=1;j<3;j++)eval(`let n=rgbToHex(...d${j}.data.slice(i,i+3));c${j}[n]=(c${j}[n]||0)+1;`);
-			const g=(v,n,m)=>n<=v&&v<=m,c=a=>Object.keys(a).reduce((r,k)=>Object.assign(r,{[k]:a[k]}),{})[344861]||0;
-			let pa=[[910,1007],[1239,1287],[1421,1481],[1272,1396],[1659,1709],[1769,1896],[1236,1293],[1895,1963],[1949,2045]];
-			let pb=[[639,740],[916,1007],[1159,1231],[1000,1170],[1081,1151],[1100,1159],[586,672],[1147,1231],[1233,1294]];
-			for(let i=0;i<9;i++)if(g(c(c1),...pa[i])&&g(c(c2),...pb[i]))return++i;
+			const x=board.width/2+cx*s-w,y=board.height/2+cy*s-w,t=([r,g,b])=>((r<<16)|(g<<8)|b)==3426401,c1=c(ctx.getImageData(x,y-z*.3,z,z).data).filter(t).length,c2=c(ctx.getImageData(x+z*.34,y+z*.2,z,z).data).filter(t).length;
+			for(let i=0;i<9;i++)if(g(c1,...pa[i])&&g(c2,...pb[i]))return++i;
 			return 0;
 		}
-		let nums="";
-		for(let y=0;y<9;y++)for(let x=0;x<9;x++)nums+=getc(x-4,y-4);
-		return nums;
+		let n="";
+		for(let i=0;i<81;i++)n+=getc(i%9-4,(i/9|0)-4);
+		return n;
 	}
-	function solve(r){
-		let b=r.split("").map(e=>2**--e|0),s=_=>{
-			let[i,ms]=analyze(b);
-			if(i==null)return!0;
-			for(let m=1;ms;m<<=1)if(ms&m&&(b[i]=m))if(s())return!0;else ms^=m;
-			b[i]=0;
+	function solve(a){
+		let b=a.split("").map(e=>2**--e|0),c=_=>{
+			let[d,e]=analyze(b),f;
+			if(d==null)return!0;
+			for(f=1;e;f<<=1)if(e&f&&(b[d]=f))if(c())return!0;else e^=f;
+			b[d]=0;
 		}
-		if(s())return b.map(b2d);
+		if(c())return b.map(b2d);
 	}
 	let ongoing=false;
 	async function start(a){
@@ -87,7 +77,6 @@ javascript:(function(){
 		document.getElementById("DISPLAY").value=raw.replaceAll("0",".").match(/.{27}/g).map(e=>e.match(/.{9}/g).map(c=>c.match(/.{3}/g).join(" ")).join("\n")).join("\n\n");
 		if(raw.length<81)return setStatus("Invalid Board");
 		let solved=solve(raw);
-		console.log(solved);
 		if(!solved)return setStatus("Invalid Board");
 		const c=[];
 		for(let i=0;i<81;i++)if(raw[i]=="0")c.push(i);
