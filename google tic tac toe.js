@@ -1,45 +1,16 @@
 javascript:(function(){
-	let a=document.getElementsByClassName("roCb6d"),scr0,src1;
-	function count(i=0){
-		Array.from(a).forEach(e=>{
-			Array.from(e.children).forEach(r=>{
-				r.style.display!="none"&&(i++);
-			});
-		});
-		return i;
-	}
-	function type(e){
-		let svg=e.children;
-		return svg[0].style.display!="none"?"X":svg[1].style.display!="none"?"O":"";
+	let A=document.querySelectorAll(".roCb6d");
+	function t(e){
+		e=e.children;
+		return e[0].style.display!="none"?1:e[1].style.display!="none"?-1:0;
 	}
 	setInterval(()=>{
-		a[4].click();
-		if(count()==2){
-			type(a[0])=="O"&&a[2].click();
-			type(a[1])=="O"&&a[2].click();
-			type(a[2])=="O"&&a[8].click();
-			type(a[3])=="O"&&a[0].click();
-			type(a[5])=="O"&&a[8].click();
-			type(a[6])=="O"&&a[6].click();
-			type(a[7])=="O"&&a[6].click();
-			type(a[8])=="O"&&a[0].click();
+		A[4].click();
+		switch([...A].filter(e=>e.children[0].style.display!="none").length){
+			case 1:[[0,2],[1,2],[2,8],[3,0],[5,8],[6,6],[7,6],[8,0]].forEach(([i,j])=>t(A[i])<0&&A[j].click());break;
+			case 2:[[2,0],[8,2],[6,8],[0,6]].forEach(([i,j])=>!t(A[i])&&t(A[j])>0&&A[i].click());break;
+			case 3:[[0,2,1,6,8],[6,0,3,8,2],[2,8,5,6,0],[8,6,7,0,2]].forEach(([a,b,c,d,e])=>t(A[a])>0&&t(A[b])>0&&(A[c].click(),A[d].click(),A[e].click()));break;
 		}
-		if(count()==4){
-			type(a[2])==""&&type(a[0])=="X"&&a[2].click();
-			type(a[8])==""&&type(a[2])=="X"&&a[8].click();
-			type(a[6])==""&&type(a[8])=="X"&&a[6].click();
-			type(a[0])==""&&type(a[6])=="X"&&a[0].click();
-		}
-		if(count()==6){
-			type(a[0])=="X"&&type(a[2])=="X"&&(a[1].click(),a[6].click(),a[8].click());
-			type(a[6])=="X"&&type(a[0])=="X"&&(a[3].click(),a[8].click(),a[2].click());
-			type(a[2])=="X"&&type(a[8])=="X"&&(a[5].click(),a[6].click(),a[0].click());
-			type(a[8])=="X"&&type(a[6])=="X"&&(a[7].click(),a[0].click(),a[2].click());
-		}
-		scr1=document.querySelector("#rso>div:nth-child(1)>div>block-component>div>div.dG2XIf.EyBRub.Wnoohf.OJXvsb>div:nth-child(1)>div>div>div.ifM9O>div>div>div>div>div.JE13Kc>table>tbody>tr>td:nth-child(1)>g-raised-button>div>span").innerText;
-		if(!isNaN(scr)&&scr0!=scr1){
-			document.querySelector("div.qLf5y>g-raised-button>div").click();
-			scr0=scr1;
-		}
-	},75);
+	});
+	new MutationObserver(e=>document.querySelectorAll(".lv7K9c")[2].click()).observe(document.querySelectorAll(".lv7K9c")[0],{subtree:!0,attributes:!1,childList:!0,characterData:!0});
 })();
