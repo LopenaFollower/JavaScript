@@ -1,6 +1,6 @@
-javascript:(function(){
-	let d=document.querySelector("main div"),s=d.getBoundingClientRect(),X=s.width/2+s.x,Y=s.height/2+s.y,r=2e3,m=Math,e=(t,c)=>d.dispatchEvent(new MouseEvent(t,c)),i,a;
+javascript:((d,m,r,i,a)=>{
+	let s=d.getBoundingClientRect(),[X,Y,e]=[s.width/2+s.x,s.height/2+s.y,(t,c)=>d.dispatchEvent(new MouseEvent(t,c))];
 	e("mousedown",{clientX:X+r,clientY:Y});
-	for(i=a=0;i<361;i+=90,a=i*m.PI/180)e("mousemove",{clientX:X+r*m.cos(a),clientY:Y+r*m.sin(a)});
-	e("click");
-})();
+	for(;i<361;a=(i+=90)*m.PI/180)e("mousemove",{clientX:X+r*m.cos(a),clientY:Y+r*m.sin(a)});
+	d.click();
+})(document.querySelector("main div"),Math,2e3,0,0);
