@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name Krunker.IO Aimbot & ESP
-// @version 1.1.5
-// @description aimlock to nearest enemy angle, esp, tracers
+// @version 1.1.6
+// @description aimlock to nearest enemy, esp, tracers
 // @match *://krunker.io/*
 // @exclude *://krunker.io/social*
-// @exclude *://krunker.io/editor*
+// @exclude	*://krunker.io/editor*
 // @run-at document-start
 // @require https://unpkg.com/three@0.150.0/build/three.min.js
 // ==/UserScript==
@@ -75,6 +75,13 @@ line.geometry.setAttribute("position",linePos);
 function norm(r){
 	r=Math.abs(r)%(2*Math.PI);
 	return r;
+}
+function getRoot(plr){
+	if(plr.children.length<2)return null;
+	let model=plr.children[0];
+	let[a,b,c,d,character]=model.children;
+	let[head,body]=character.children;
+	return head||body||a;
 }
 function animate(){
 	requestAnimationFrame(animate);
@@ -150,10 +157,10 @@ function animate(){
 	line.visible=settings.tracers;
 	if(settings.aimbot==false||(settings.useRightMouse&&!RMB)||target==null)return;
 	tempVector.setScalar(0);
-	target.children[0].children[4].children[0].localToWorld(tempVector);
+	getRoot(target).localToWorld(tempVector);
 	tempObject.position.copy(plr.position);
 	tempObject.lookAt(tempVector);
-	plr.children[0].rotation.x=-tempObject.rotation.x+1/target.position.distanceTo(plr.position);
+	plr.children[0].rotation.x=-tempObject.rotation.x+.7/target.position.distanceTo(plr.position);
 	plr.rotation.y=tempObject.rotation.y+Math.PI;
 }
 const holder=document.createElement("div");
