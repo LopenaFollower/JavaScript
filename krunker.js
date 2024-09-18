@@ -1,16 +1,15 @@
 // ==UserScript==
 // @name Krunker.IO Aimbot & ESP
-// @version 1.0.7
-// @description aimlock to nearest enemy, esp, tracers
+// @version 1.1.5
+// @description aimlock to nearest enemy angle, esp, tracers
 // @match *://krunker.io/*
 // @exclude *://krunker.io/social*
-// @exclude	*://krunker.io/editor*
+// @exclude *://krunker.io/editor*
 // @run-at document-start
 // @require https://unpkg.com/three@0.150.0/build/three.min.js
 // ==/UserScript==
 
 const THREE=window.THREE;
-delete window.THREE;
 const ap=Array.prototype.push;
 const settings={
 	aimbot:true,
@@ -114,7 +113,7 @@ function animate(){
 		Array.prototype.push=spy;
 		return;
 	}
-	let c=0,target,maxA=0;
+	let c=0,maxA=0,target;
 	tempObject.matrix.copy(plr.matrix).invert();
 	for(let i=0;i<plrs.length;i++){
 		const cplr=plrs[i];
@@ -149,12 +148,12 @@ function animate(){
 	linePos.needsUpdate=true;
 	line.geometry.setDrawRange(0,c);
 	line.visible=settings.tracers;
-	if(settings.aimbot==false||(settings.useRightMouse&&!RMB)||target==undefined)return;
+	if(settings.aimbot==false||(settings.useRightMouse&&!RMB)||target==null)return;
 	tempVector.setScalar(0);
-	target.children[0].children[0].localToWorld(tempVector);
+	target.children[0].children[4].children[0].localToWorld(tempVector);
 	tempObject.position.copy(plr.position);
 	tempObject.lookAt(tempVector);
-	plr.children[0].rotation.x=-tempObject.rotation.x;
+	plr.children[0].rotation.x=-tempObject.rotation.x+1/target.position.distanceTo(plr.position);
 	plr.rotation.y=tempObject.rotation.y+Math.PI;
 }
 const holder=document.createElement("div");
