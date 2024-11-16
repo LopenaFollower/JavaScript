@@ -10,6 +10,7 @@ const GUI=function(windowname){
 		return el;
 	}
 	const mainWindow=open("","","width=450,height=290");
+	mainWindow.document.title=windowname;
 	mainWindow.document.head.innerHTML+=`
 	<link href="https://fonts.googleapis.com/css2?family=Sono:wght@200..800&display=swap"rel="stylesheet">
 	<style>
@@ -134,7 +135,6 @@ const GUI=function(windowname){
 			content:"";
 		}
 	</style>`;
-	mainWindow.eval("document.title=\""+windowname+"\"");
 	const dashboard=createEl("div",mainWindow.document.body);dashboard.className="dashboard";
 	const pageholder=createEl("div",mainWindow.document.body);pageholder.className="page-holder";
 	const pages=[];
