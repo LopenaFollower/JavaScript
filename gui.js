@@ -6,7 +6,7 @@
 const GUI=function(windowName){
 	function createEl(t,p,o={}){
 		let e=document.createElement(t);
-		Object.keys(o).forEach(k=>e[k]=o[k]);
+		Object.keys(o).forEach(k=>{e[k]=o[k]});
 		p.appendChild(e);
 		return e;
 	}
@@ -201,7 +201,7 @@ const GUI=function(windowName){
 	return mainWindow;
 };
 
-let UI=GUI("Gui V0.04");
+let UI=GUI("Gui V0.05");
 let Main=UI.addPage("Main",true);
 let Tab2=UI.addPage("Tab 2");
 Main.addLabel("Label Name","Label Info");
