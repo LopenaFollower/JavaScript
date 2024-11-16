@@ -23,7 +23,6 @@ const GUI=function(windowname){
 		::-webkit-scrollbar{
 			height:5px;
 			width:5px;
-			z-index:100;
 		}
 		::-webkit-scrollbar-thumb{
 			border-radius:10px;
@@ -62,7 +61,6 @@ const GUI=function(windowname){
 			flex-direction:column;
 			align-items:center;
 			padding:3px;
-			z-index:10000;
 		}
 		.label-text{
 			color:#fff;
