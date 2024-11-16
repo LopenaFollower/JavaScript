@@ -1,19 +1,19 @@
 // ==UserScript==
 // @name GUI
-// @version 0.04
+// @version 0.05
 // @description
 // ==/UserScript==
-const GUI=function(windowname){
+const GUI=function(windowName){
 	function createEl(t,p){
 		let el=document.createElement(t);
 		p.appendChild(el);
 		return el;
 	}
 	const mainWindow=open("","","width=450,height=290");
-	const style=createEl("style",mainWindow.document.head);
-	style.appendChild(document.createTextNode(`
+	createEl("style",mainWindow.document.head).appendChild(document.createTextNode(`
 		*{
 			font-family:"Segoe UI",Tahoma,monospace;
+			color:#fff;
 		}
 		body{
 			margin:0;
@@ -22,90 +22,76 @@ const GUI=function(windowname){
 		::-webkit-scrollbar{
 			height:5px;
 			width:5px;
-			z-index:100;
 		}
 		::-webkit-scrollbar-thumb{
 			border-radius:10px;
 			background:#777;
 		}
 		::-webkit-scrollbar-corner{
-			background-color:#222;
+			background:#222;
 		}
 		.dashboard{
 			float:left;
 			height:100%;
 			width:25%;
-			background-color:#111;
+			background:#111;
 		}
 		.tab-button{
-			color:#fff;
 			border:none;
 			width:100%;
-			text-align:center;
 			padding:5px 0;
-			background-color:#0f0f0f;
+			background:#0f0f0f;
 		}
 		.page-holder{
 			float:right;
 			height:100%;
 			width:75%;
-			background-color:#222;
+			background:#222;
 		}
 		.page{
 			width:100%;
 			height:100%;
 		}
 		.page-label{
-			background-color:#333;
+			background:#333;
 			display:flex;
 			flex-direction:column;
 			align-items:center;
 			padding:3px;
-			z-index:10000;
-		}
-		.label-text{
-			color:#fff;
-			font-size:100%;
 		}
 		.label-info{
-			color:#fffd;
+			color:#fffb;
 			font-size:70%;
 		}
 		.page-button{
 			width:100%;
-			color:#fffe;
 			margin:5px 0 0 0;
-			border-radius:12px;
-			background-color:#151515;
+			border-radius:10px;
+			background:#151515;
 		}
 		.page-toggle{
 			padding:5px 0 0 0;
-			background-color:#0000;
 			display:flex;
 			justify-content:space-between;
-			width:100%;
 		}
-		.toggle-title{
-			color:#fff;
+		.toggle-title,.slider-title{
+			margin-left:5px;
 		}
 		.toggle-button,.slider-value{
 			width:15%;
-			color:#fff;
 			text-align:center;
 			border-radius:10px;
-			background-color:#151515;
+			background:#151515;
 		}
 		.toggle-ball{
 			width:40%;
 			height:100%;
 			border-radius:100%;
-			background-color:#fff;
+			background:#fff;
 			transition:all .1s cubic-bezier(.4,0,1,1)
 		}
 		.page-slider{
 			padding:5px 0 0 0;
-			background-color:#0000;
-			width:100%;
 		}
 		.slider-range{
 			-webkit-appearance:none;
@@ -113,8 +99,7 @@ const GUI=function(windowname){
 			width:99%;
 			height:15px;
 			border-radius:5px;
-			background-color:#151515;
-			outline:none;
+			background:#151515;
 			opacity:.9;
 			-webkit-transition:.2s;
 			transition:all .2s;
@@ -131,11 +116,8 @@ const GUI=function(windowname){
 			background:#fff;
 			user-select:none;
 		}
-		.toggle-button,.toggle-ball,.slider-value{
-			content:"";
-		}
 	`));
-	mainWindow.document.title=windowname;
+	mainWindow.document.title=windowName;
 	const dashboard=createEl("div",mainWindow.document.body);dashboard.className="dashboard";
 	const pageholder=createEl("div",mainWindow.document.body);pageholder.className="page-holder";
 	const pages=[];
@@ -217,12 +199,15 @@ const GUI=function(windowname){
 			holder.className="page-slider";
 			container.style.display="flex";
 			container.style.justifyContent="space-between";
-			title.className="toggle-title";
+			title.className="slider-title";
 			title.innerText=n;
 			val.className="slider-value";
 			val.contentEditable=true;
+			function constraint(v){
+				return Math.min(10,Math.max(0,v));
+			}
 			val.onblur=function(){
-				val.innerText=Math.min(10,Math.max(0,parseFloat("0"+val.innerText.replaceAll(/[^\d.-]/g,""))));
+				val.innerText=constraint(parseFloat("0"+val.innerText.replaceAll(/[^\d.-]/g,"")));
 			}
 			setInterval(()=>{
 				slider.value=parseFloat(slider.value)+Math.sign(val.innerText-slider.value)/10;
