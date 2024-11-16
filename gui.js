@@ -10,8 +10,8 @@ const GUI=function(windowname){
 		return el;
 	}
 	const mainWindow=open("","","width=450,height=290");
-	mainWindow.document.head.innerHTML+=`
-	<style>
+	const style=createEl("style",mainWindow.document.head);
+	style.appendChild(document.createTextNode(`
 		*{
 			font-family:"Segoe UI",Tahoma,monospace;
 		}
@@ -134,7 +134,7 @@ const GUI=function(windowname){
 		.toggle-button,.toggle-ball,.slider-value{
 			content:"";
 		}
-	</style>`;
+	`));
 	mainWindow.document.title=windowname;
 	const dashboard=createEl("div",mainWindow.document.body);dashboard.className="dashboard";
 	const pageholder=createEl("div",mainWindow.document.body);pageholder.className="page-holder";
@@ -245,4 +245,4 @@ let Tab2=UI.addPage("Tab 2");
 Main.addLabel("Label Name","Label Info");
 Main.addButton("Button");
 Main.addToggle("Toggle");
-Main.addSlider("Slider",0,10);
+Main.addSlider("Slider");
