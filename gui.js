@@ -4,7 +4,7 @@ const GUI=function(windowname){
 		p.appendChild(el);
 		return el;
 	}
-	const mainWindow=open("","","width=432,height=285");
+	const mainWindow=open("","","width=450,height=290");
 	mainWindow.document.head.innerHTML+=`
 	<link href="https://fonts.googleapis.com/css2?family=Sono:wght@200..800&display=swap"rel="stylesheet">
 	<style>
@@ -26,7 +26,7 @@ const GUI=function(windowname){
 		::-webkit-scrollbar-corner{
 			background-color:#222;
 		}
-		.tabButton{
+		.tab-button{
 			color:#fff;
 			border:none;
 			width:100%;
@@ -67,7 +67,7 @@ const GUI=function(windowname){
 			justify-content:space-between;
 			width:100%;
 		}
-		.page-toggle-title{
+		.toggle-title{
 			color:#fff;
 		}
 		.toggle-button{
@@ -86,13 +86,15 @@ const GUI=function(windowname){
 	mainWindow.eval("document.title=\""+windowname+"\"");
 	const dashboard=createEl("div",mainWindow.document.body),ds=dashboard.style;ds.float="left";ds.height="100%";ds.width="25%";ds.backgroundColor="#111";
 	const pageholder=createEl("div",mainWindow.document.body),phs=pageholder.style;phs.float="right";phs.height="100%";phs.width="75%";phs.backgroundColor="#222";
-	let pageid=0,selectedPage;
 	const pages=[];
+	let pageid=0,selectedPage;
 	mainWindow.addPage=function(name,isMain){
 		selectedPage=isMain?pageid:selectedPage;
 		let tabBtn=createEl("button",dashboard),ts=tabBtn.style;
+		let page=createEl("div",pageholder),ps=page.style;
+		let pageMethods={};
 		ts.opacity=isMain?1:.6;
-		tabBtn.className="tabButton";
+		tabBtn.className="tab-button";
 		tabBtn.dataset.id=pageid++;
 		tabBtn.innerText=name;
 		tabBtn.addEventListener("mouseenter",e=>{
@@ -114,12 +116,10 @@ const GUI=function(windowname){
 				}
 			});
 		}
-		let page=createEl("div",pageholder),ps=page.style;
 		page.className="page";
 		ps.display=isMain?"block":"none";
 		ps.overflow="scroll";
 		pages.push([tabBtn,page]);
-		let pageMethods={};
 		pageMethods.rename=function(n=""){
 			let name=n.toString();
 			if(name.length)tabBtn.innerText=name;
@@ -128,9 +128,9 @@ const GUI=function(windowname){
 			let holder=createEl("div",page);
 			holder.className="page-label";
 			let text=createEl("span",holder);
+			let info=createEl("span",holder);
 			text.className="page-label-text";
 			text.innerText=n;
-			let info=createEl("span",holder);
 			info.className="page-label-info";
 			info.innerText=i;
 		}
@@ -142,12 +142,12 @@ const GUI=function(windowname){
 		}
 		pageMethods.addToggle=function(n,d,f){
 			let holder=createEl("div",page);
-			holder.className="page-toggle";
 			let title=createEl("span",holder);
-			title.className="page-toggle-title";
-			title.innerText=n;
-			let toggled=d;
 			let btn=createEl("div",holder);
+			let toggled=d;
+			holder.className="page-toggle";
+			title.className="toggle-title";
+			title.innerText=n;
 			btn.className="toggle-button";
 			btn.innerText=" ";
 			let ball=createEl("div",btn);
