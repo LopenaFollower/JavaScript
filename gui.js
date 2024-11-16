@@ -4,10 +4,11 @@
 // @description
 // ==/UserScript==
 const GUI=function(windowName){
-	function createEl(t,p){
-		let el=document.createElement(t);
-		p.appendChild(el);
-		return el;
+	function createEl(t,p,o={}){
+		let e=document.createElement(t);
+		Object.keys(o).forEach(k=>e[k]=o[k]);
+		p.appendChild(e);
+		return e;
 	}
 	const mainWindow=open("","","width=450,height=290");
 	createEl("style",mainWindow.document.head).appendChild(document.createTextNode(`
@@ -51,6 +52,7 @@ const GUI=function(windowName){
 		.page{
 			width:100%;
 			height:100%;
+			overflow-x:scroll;
 		}
 		.page-label{
 			background:#333;
@@ -118,20 +120,19 @@ const GUI=function(windowName){
 		}
 	`));
 	mainWindow.document.title=windowName;
-	const dashboard=createEl("div",mainWindow.document.body);dashboard.className="dashboard";
-	const pageholder=createEl("div",mainWindow.document.body);pageholder.className="page-holder";
+	const dashboard=createEl("div",mainWindow.document.body,{className:"dashboard"});
+	const pageholder=createEl("div",mainWindow.document.body,{className:"page-holder"});
 	const pages=[];
 	let pageid=0,selectedPage;
 	mainWindow.addPage=function(name,isMain){
 		selectedPage=isMain?pageid:selectedPage;
-		let tabBtn=createEl("button",dashboard),ts=tabBtn.style;
-		let page=createEl("div",pageholder),ps=page.style;
+		let tabBtn=createEl("button",dashboard,{className:"tab-button",innerText:name}),ts=tabBtn.style;
+		let page=createEl("div",pageholder,{className:"page"});
 		let pageMethods={};
 		pages.push([tabBtn,page]);
 		ts.opacity=isMain?1:.6;
-		tabBtn.className="tab-button";
+		page.style.display=isMain?"block":"none";
 		tabBtn.dataset.id=pageid++;
-		tabBtn.innerText=name;
 		tabBtn.addEventListener("mouseenter",e=>{
 			ts.opacity=+tabBtn.dataset.id==selectedPage?1:.8;
 		});
@@ -150,61 +151,40 @@ const GUI=function(windowName){
 				}
 			});
 		}
-		page.className="page";
-		ps.display=isMain?"block":"none";
-		ps.overflowX="scroll";
 		pageMethods.rename=function(n=""){
-			let name=n.toString();
-			if(name.length)tabBtn.innerText=name;
+			n=n.toString();
+			if(n.length)tabBtn.innerText=n;
 		}
 		pageMethods.addLabel=function(n="",i=""){
-			let holder=createEl("div",page);
-			let text=createEl("span",holder);
-			let info=createEl("span",holder);
-			holder.className="page-label";
-			text.className="label-text";
-			text.innerText=n;
-			info.className="label-info";
-			info.innerText=i;
+			let holder=createEl("div",page,{className:"page-label"});
+			createEl("span",holder,{className:"label-text",innerText:n});
+			createEl("span",holder,{className:"label-info",innerText:i});
 		}
 		pageMethods.addButton=function(n="",f=function(){}){
-			let btn=createEl("button",page);
-			btn.className="page-button";
-			btn.innerText=n;
-			btn.onclick=f;
+			createEl("button",page,{className:"page-button",innerText:n,onclick:f});
 		}
 		pageMethods.addToggle=function(n="",d=false,f=function(){}){
-			let holder=createEl("div",page);
-			let title=createEl("span",holder);
-			let btn=createEl("div",holder);
-			let ball=createEl("div",btn);
+			let holder=createEl("div",page,{className:"page-toggle"});
+			createEl("span",holder,{className:"toggle-title",innerText:n});
+			let btn=createEl("div",holder,{className:"toggle-button"});
+			let ball=createEl("div",btn,{className:"toggle-ball"});
 			let toggled=!d;
-			holder.className="page-toggle";
-			title.className="toggle-title";
-			title.innerText=n;
-			btn.className="toggle-button";
-			ball.className="toggle-ball";
 			holder.onclick=function(){
 				f(toggled=!toggled);
-				ball.style.transform="translate("+(toggled?"150":"0")+"%,0%)";
+				ball.style.transform="translate("+(toggled?"15":"")+"0%,0%)";
 			}
 			holder.click();
 		}
-		pageMethods.addSlider=function(n="",mn=0,mx=10,f=function(){}){
-			let holder=createEl("div",page);
+		pageMethods.addSlider=function(n="",min=0,max=10,f=function(){}){
+			let holder=createEl("div",page,{className:"page-slider"});
 			let container=createEl("div",holder);
-			let title=createEl("span",container);
-			let val=createEl("div",container);
-			let slider=createEl("input",holder);
-			holder.className="page-slider";
+			createEl("span",container,{className:"slider-title",innerText:n});
+			let val=createEl("div",container,{className:"slider-value",contentEditable:true,innerText:min});
+			let slider=createEl("input",holder,{className:"slider-range",type:"range",step:.1,min,max,value:min});
 			container.style.display="flex";
 			container.style.justifyContent="space-between";
-			title.className="slider-title";
-			title.innerText=n;
-			val.className="slider-value";
-			val.contentEditable=true;
 			function constraint(v){
-				return Math.min(10,Math.max(0,v));
+				return Math.min(max,Math.max(min,v));
 			}
 			val.onblur=function(){
 				val.innerText=constraint(parseFloat("0"+val.innerText.replaceAll(/[^\d.-]/g,"")));
@@ -212,9 +192,6 @@ const GUI=function(windowName){
 			setInterval(()=>{
 				slider.value=parseFloat(slider.value)+Math.sign(val.innerText-slider.value)/10;
 			});
-			val.innerText=slider.value=mn;
-			slider.className="slider-range";
-			slider.type="range";slider.step=.1;slider.min=mn;slider.max=mx;
 			slider.oninput=function(){
 				f(parseInt(val.innerText=this.value));
 			}
