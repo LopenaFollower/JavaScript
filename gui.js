@@ -13,7 +13,7 @@ const GUI=function(windowname){
 	mainWindow.document.head.innerHTML+=`
 	<style>
 		*{
-			font-family:"Segoe UI", Tahoma,monospace;
+			font-family:"Segoe UI",Tahoma,monospace;
 		}
 		body{
 			margin:0;
