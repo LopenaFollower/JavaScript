@@ -10,12 +10,10 @@ const GUI=function(windowname){
 		return el;
 	}
 	const mainWindow=open("","","width=450,height=290");
-	mainWindow.document.title=windowname;
 	mainWindow.document.head.innerHTML+=`
-	<link href="https://fonts.googleapis.com/css2?family=Sono:wght@200..800&display=swap"rel="stylesheet">
 	<style>
 		*{
-			font-family:"Sono",monospace;
+			font-family:"Segoe UI", Tahoma,monospace;
 		}
 		body{
 			margin:0;
@@ -24,6 +22,7 @@ const GUI=function(windowname){
 		::-webkit-scrollbar{
 			height:5px;
 			width:5px;
+			z-index:100;
 		}
 		::-webkit-scrollbar-thumb{
 			border-radius:10px;
@@ -62,6 +61,7 @@ const GUI=function(windowname){
 			flex-direction:column;
 			align-items:center;
 			padding:3px;
+			z-index:10000;
 		}
 		.label-text{
 			color:#fff;
@@ -135,6 +135,7 @@ const GUI=function(windowname){
 			content:"";
 		}
 	</style>`;
+	mainWindow.document.title=windowname;
 	const dashboard=createEl("div",mainWindow.document.body);dashboard.className="dashboard";
 	const pageholder=createEl("div",mainWindow.document.body);pageholder.className="page-holder";
 	const pages=[];
