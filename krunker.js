@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name Krunker.IO Aimbot & ESP
-// @version 1.1.6
+// @version 1.1.2
 // @description aimlock to nearest enemy, esp, tracers
 // @match *://krunker.io/*
 // @exclude *://krunker.io/social*
@@ -29,13 +29,10 @@ const hotkeys={
 	KeyM:"esp",
 	KeyN:"tracers"
 };
-const gui=createGUI();
 let scene,rgb=[255,0,0],ci=0,cj=1,d=1,injector=null,mode=1,RMB=false;
-console.log("Injecting...");
 const spy=function(obj){
 	try{
 		if(typeof obj=="object"&&typeof obj.parent=="object"&&obj.parent.type=="Scene"&&obj.parent.name=="Main"){
-			console.log("Found Scene!");
 			scene=obj.parent;
 			Array.prototype.push=ap;
 		}
@@ -46,8 +43,7 @@ const tempVector=new THREE.Vector3();
 const aimVector=new THREE.Vector3();
 const tempObject=new THREE.Object3D();
 const aimObject=new THREE.Object3D();
-tempObject.rotation.order="YXZ";
-aimObject.rotation.order="YXZ";
+tempObject.rotation.order=aimObject.rotation.order="YXZ";
 const geometry=new THREE.EdgesGeometry(new THREE.BoxGeometry(5,15,5).translate(0,7.5,0));
 const material=new THREE.RawShaderMaterial({
 	uniforms:{color:{value:new THREE.Color(0xff0000)}},
@@ -79,56 +75,38 @@ function norm(r){
 function getRoot(plr){
 	if(plr.children.length<2)return null;
 	let model=plr.children[0];
-	let[a,b,c,d,character]=model.children;
-	let[head,body]=character.children;
-	return head||body||a;
+	let[a,b,c,d,e]=model.children;
+	let[f,g]=e.children;
+	return f||g||a;
 }
 function animate(){
 	requestAnimationFrame(animate);
-	if(d<0?rgb[ci]>0:rgb[cj]<255)rgb[d<0?ci:cj]+=d;
-	else if(1+(d=-d)){
-		ci=++ci%3;
-		cj=++cj%3;
-	}
+	if(d<0?rgb[ci]>0:rgb[cj]<255)rgb[d<0?ci:cj]+=d;else if(1+(d=-d))ci=++ci%3,cj=++cj%3;
 	if(!scene&&!injector){
 		let el=document.querySelector("#loadingBg");
-		if(el&&el.style.display=="none"){
-			console.log("Injection started!");
+		if(el&&el.style.display=="none")
 			injector=setTimeout(()=>{
-				console.log("Injected!");
 				Array.prototype.push=spy;
 			},2e3);
-		}
 	}
 	if(scene===undefined||!scene.children)return;
 	const plrs=[];
 	let plr;
-	for(let i=0;i<scene.children.length;i++){
-		let c=scene.children[i];
-		if(c.type=="Object3D"){
+	for(let c of scene.children)
+		if(c.type=="Object3D")
 			try{
-				if(c.children[0].children[0].type=="PerspectiveCamera"){
-					plr=c;
-				}else{
-					plrs.push(c);
-				}
+				if(c.children[0].children[0].type=="PerspectiveCamera")plr=c;
+				else plrs.push(c);
 			}catch(e){}
-		}
-	}
-	if(!plr){
-		console.log("Player not found, finding new scene.");
-		Array.prototype.push=spy;
-		return;
-	}
-	let c=0,maxA=0,target;
+	if(!plr)return Array.prototype.push=spy;
+	let c=0,maxA=0,target=null;
 	tempObject.matrix.copy(plr.matrix).invert();
 	for(let i=0;i<plrs.length;i++){
 		const cplr=plrs[i];
 		if(!cplr.box){
 			let b=new THREE.LineSegments(geometry,material);
 			b.frustumCulled=false;
-			cplr.add(b);
-			cplr.box=b;
+			cplr.add(cplr.box=b);
 		}else cplr.box.material.uniforms.color.value.set((rgb[0]<<16)+(rgb[1]<<8)+rgb[2]);
 		if(cplr.position.x==plr.position.x&&cplr.position.z==plr.position.z){
 			cplr.box.visible=false;
@@ -155,14 +133,14 @@ function animate(){
 	linePos.needsUpdate=true;
 	line.geometry.setDrawRange(0,c);
 	line.visible=settings.tracers;
-	if(settings.aimbot==false||(settings.useRightMouse&&!RMB)||target==null)return;
+	if(!settings.aimbot||(settings.useRightMouse&&!RMB)||target===null)return;
 	tempVector.setScalar(0);
 	getRoot(target).localToWorld(tempVector);
-	tempObject.position.copy(plr.position);
-	tempObject.lookAt(tempVector);
+	tempObject.position.copy(plr.position);tempObject.lookAt(tempVector);
 	plr.children[0].rotation.x=-tempObject.rotation.x+.7/target.position.distanceTo(plr.position);
 	plr.rotation.y=tempObject.rotation.y+Math.PI;
 }
+const gui=createGUI();
 const holder=document.createElement("div");
 holder.innerHTML=`<style>
 .dialog{position:absolute;left:50%;top:50%;padding:20px;background:#000c;border:6px solid #0003;color:#fff;transform:translate(-50%,-50%);text-align:center;z-index:99999}
@@ -205,7 +183,10 @@ window.addEventListener("pointerup",handleMouse);
 window.addEventListener("keyup",e=>{
 	if(document.activeElement&&document.activeElement.value!==undefined)return;
 	let k=hotkeys[e.code],el;
-	if(k)settings[k]=!settings[k];
+	if(k){
+		settings[k]=!settings[k];
+		updateVal(k);
+	}
 	switch(e.code){
 		case"Slash":
 			document.querySelector(".gui-header").click();
@@ -217,6 +198,21 @@ window.addEventListener("keyup",e=>{
 	}
 });
 animate();
+function updateVal(prop){
+	let v=settings[prop];
+	console.log("EL_"+prop);
+	let e=document.getElementById("EL_"+prop);
+	switch(typeof v){
+		case"boolean":
+			e.innerText=v?"ON":"OFF";
+			e.style.color=v?"#0f0":"red";
+			break;
+		case"number":
+			if(v!=Number(e.innerText))e.innerText=v.toFixed();
+			e.style.color="#ae81ff";
+			break
+	}
+}
 function createGUI(){
 	const gui=fromHtml(`<div class=gui>
 		<div class="gui-item gui-header">
@@ -247,39 +243,15 @@ function createGUI(){
 			if(shortKey.startsWith("Key"))shortKey=shortKey.slice(3);
 			name=`[${shortKey}] ${name}`;
 		}
-		let type=typeof settings[prop],item;
-		switch(type){
-			case"boolean":
-				item=fromHtml(`<div class=gui-item><span>${name}</span><span class=gui-item-value></span></div>`);
-				item.onclick=function(){
-					settings[prop]=!settings[prop];
-					updateVal();
-				}
-				break;
-			case"number":
-				item=fromHtml(`<div class=gui-item><span>${name}</span><span class="gui-item-value number"contenteditable></span></div>`);
-				item.oninput=function(){
-					settings[prop]=constraints[prop](Number(val.innerText)|0);
-					updateVal();
-				}
-				break;
-		}
+		let v=settings[prop]
+		let type=typeof v;
+		let item=fromHtml(`<div class=gui-item><span>${name}</span><span style="color:${type=="boolean"?v?"#0f0":"red":"#ae81ff"}"id="EL_${prop}"class="gui-item-value${type=="boolean"?'"':' number"contenteditable'}>${type=="boolean"?["OFF","ON"][+v]:v}</span></div>`);
+		cont.appendChild(item);""
 		let val=item.querySelector(".gui-item-value");
-		function updateVal(){
-			let v=settings[prop];
-			switch(typeof v){
-				case"boolean":
-					val.innerText=v?"ON":"OFF";
-					val.style.color=v?"#0f0":"red";
-					break;
-				case"number":
-					if(v!=Number(val.innerText))val.innerText=v.toFixed();
-					val.style.color="#ae81ff";
-					break
-			}
+		item.onclick=function(){
+			settings[prop]=type=="boolean"?!settings[prop]:constraints[prop](Number(val.innerText)|0);
+			updateVal(prop);
 		}
-		updateVal();
-		cont.appendChild(item);
 	}
 	return gui;
 }
