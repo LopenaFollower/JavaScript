@@ -168,7 +168,7 @@ const GUI=function(windowName){
 				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>(holder.click(d=!v))});
 			},
 			addSlider:function(n="",opt,f=function(){}){
-				let d=opt.default||opt.def||opt.d,min=opt.minimum||opt.min||opt.mn,max=opt.maximum||opt.max||opt.mx;
+				let min=opt.minimum||opt.min||opt.mn,max=opt.maximum||opt.max||opt.mx,d=opt.default||opt.def||opt.d||min;
 				let holder=createEl("div",page,{className:"page-slider"});
 				let container=createEl("div",holder,{},"display:flex;justify-content:space-between");
 				let txt=createEl("span",container,{className:"slider-title",innerText:n});
