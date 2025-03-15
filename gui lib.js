@@ -1,15 +1,13 @@
 const GUI=function(windowName){
-	function createEl(t,p,o={}){
+	function createEl(t,p,o={},c=""){
 		let e=document.createElement(t);
-		Object.keys(o).forEach(k=>{
-			if(k=="style")Object.entries(o[k]).forEach(([s,v])=>{e.style[s]=v});
-			else e[k]=o[k];
-		});
+		Object.keys(o).forEach(k=>e[k]=o[k]);
+		e.style.cssText=c;
 		p.appendChild(e);
 		return e;
 	}
-	const mainWindow=open("","","width=465,height=175");
-	createEl("style",mainWindow.document.head).appendChild(document.createTextNode(`
+	const mainWindow=open("","","width=465,height=175"),doc=mainWindow.document;
+	createEl("style",doc.head).appendChild(document.createTextNode(`
 	*{
 		font-family:"Segoe UI",Tahoma,monospace;
 		color:#fff;
@@ -117,95 +115,105 @@ const GUI=function(windowName){
 		background:#fff;
 		user-select:none;
 	}
-`));
-	mainWindow.document.title=windowName;
-	const dashboard=createEl("div",mainWindow.document.body,{className:"dashboard"});
-	const pageholder=createEl("div",mainWindow.document.body,{className:"page-holder"});
+	`));
+	doc.title=windowName;
+	const dashboard=createEl("div",doc.body,{className:"dashboard"});
+	const pageholder=createEl("div",doc.body,{className:"page-holder"});
 	const pages=[];
-	let pageid=0,selectedPage;
-	mainWindow.addPage=function(name,visible){
-		selectedPage=visible?pageid:selectedPage;
+	let pid=0,selectedPage;
+	function createMethods(p,o){
+		Object.keys(o).forEach(k=>p[k]=o[k]);
+		return p;
+	}
+	return createMethods(mainWindow,{addPage:function(name,visible){
+		selectedPage=visible?pid:selectedPage;
 		let tabBtn=createEl("button",dashboard,{className:"tab-button",innerText:name}),ts=tabBtn.style;
 		let page=createEl("div",pageholder,{className:"page"});
-		let pageMethods={};
 		pages.push([tabBtn,page]);
-		ts.opacity=visible?1:.6;
-		page.style.display=visible?"block":"none";
-		tabBtn.dataset.id=pageid++;
-		tabBtn.addEventListener("mouseenter",e=>{
-			ts.opacity=+tabBtn.dataset.id==selectedPage?1:.8;
-		});
-		tabBtn.addEventListener("mouseleave",e=>{
-			ts.opacity=+tabBtn.dataset.id==selectedPage?1:.6;
-		});
+		ts.opacity=visible?1:.5;page.style.display=visible?"block":"none";
+		tabBtn.dataset.id=pid++;
+		tabBtn.addEventListener("mouseenter",e=>ts.opacity=+tabBtn.dataset.id==selectedPage?1:.75);
+		tabBtn.addEventListener("mouseleave",e=>ts.opacity=+tabBtn.dataset.id==selectedPage?1:.5);
 		tabBtn.onclick=function(){
 			selectedPage=+tabBtn.dataset.id;
 			pages.forEach(([b,p])=>{
-				if(b.dataset.id==selectedPage){
-					b.style.opacity=1;
-					p.style.display="block";
-				}else{
-					b.style.opacity=.6;
-					p.style.display="none";
+				let s=b.dataset.id==selectedPage;
+				b.style.opacity=s?1:.5;
+				p.style.display=s?"":"none";
+			});
+		}
+		return createMethods({},{
+			rename:function(n=""){
+				n=n.toString();
+				if(n.length)tabBtn.innerText=n;
+			},
+			addLabel:function(n="",i=""){
+				let holder=createEl("div",page,{className:"page-label"}),txt=createEl("span",holder,{className:"label-text",innerText:n}),inf=createEl("span",holder,{className:"label-info",innerText:i});
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),setInfo:v=>(inf.textContent=v)});
+			},
+			addButton:function(n="",f=function(){}){
+				let holder=createEl("button",page,{className:"page-button",innerText:n,onclick:f});
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(holder.textContent=v),call:f,setCallback:nf=>(f=nf)});
+			},
+			addToggle:function(n="",d=false,f=function(){}){
+				let holder=createEl("div",page,{className:"page-toggle"});
+				let txt=createEl("span",holder,{className:"toggle-title",innerText:n});
+				let btn=createEl("div",holder,{className:"toggle-button"});
+				let ball=createEl("div",btn,{className:"toggle-ball"});
+				holder.onclick=function(){
+					f(d=!d);
+					ball.style.transform="translate("+(d?"15":"")+"0%,0%)";
 				}
-			});
-		}
-		pageMethods.rename=function(n=""){
-			n=n.toString();
-			if(n.length)tabBtn.innerText=n;
-		}
-		pageMethods.addLabel=function(n="",i=""){
-			let holder=createEl("div",page,{className:"page-label"});
-			createEl("span",holder,{className:"label-text",innerText:n});
-			createEl("span",holder,{className:"label-info",innerText:i});
-		}
-		pageMethods.addButton=function(n="",f=function(){}){
-			createEl("button",page,{className:"page-button",innerText:n,onclick:f});
-		}
-		pageMethods.addToggle=function(n="",d=false,f=function(){}){
-			let holder=createEl("div",page,{className:"page-toggle"});
-			createEl("span",holder,{className:"toggle-title",innerText:n});
-			let btn=createEl("div",holder,{className:"toggle-button"});
-			let ball=createEl("div",btn,{className:"toggle-ball"});
-			let toggled=!d;
-			holder.onclick=function(){
-				f(toggled=!toggled);
-				ball.style.transform="translate("+(toggled?"15":"")+"0%,0%)";
-			}
-			holder.click();
-		}
-		pageMethods.addSlider=function(n="",min=0,max=10,f=function(){}){
-			let holder=createEl("div",page,{className:"page-slider"});
-			let container=createEl("div",holder,{style:{display:"flex",justifyContent:"space-between"}});
-			createEl("span",container,{className:"slider-title",innerText:n});
-			let val=createEl("div",container,{className:"slider-value",contentEditable:true,innerText:min});
-			let slider=createEl("input",holder,{className:"slider-range",type:"range",step:.1,min,max,value:min});
-			function constraint(v){
-				return Math.min(max,Math.max(min,v));
-			}
-			val.onblur=function(){
-				val.innerText=constraint(parseFloat("0"+val.innerText.replaceAll(/[^\d.-]/g,"")));
-			}
-			setInterval(()=>{
-				slider.value=parseFloat(slider.value)+Math.sign(val.innerText-slider.value)/10;
-			});
-			slider.oninput=function(){
-				f(parseFloat(val.innerText=this.value));
-			}
-		}
-		pageMethods.addTextBox=function(n="",d="",f=function(){}){
-			let holder=createEl("div",page,{className:"page-slider",style:{display:"flex",justifyContent:"space-between",userSelect:"none"}});
-			createEl("span",holder,{className:"slider-title",innerText:n});
-			let val=createEl("div",holder,{className:"slider-value",contentEditable:true,innerText:d,style:{userSelect:"none"}});
-			val.onblur=function(){
-				f(val.innerText);
-			}
-		}
-		pageMethods.addDropdown=function(n="",a=[],f=function(){}){
+				holder.click(d=!d);
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>(holder.click(d=!v))});
+			},
+			addSlider:function(n="",opt,f=function(){}){
+				let d=opt.default||opt.def||opt.d,min=opt.minimum||opt.min||opt.mn,max=opt.maximum||opt.max||opt.mx;
+				let holder=createEl("div",page,{className:"page-slider"});
+				let container=createEl("div",holder,{},"display:flex;justify-content:space-between");
+				let txt=createEl("span",container,{className:"slider-title",innerText:n});
+				let val=createEl("div",container,{className:"slider-value",contentEditable:true,innerText:min},"margin-right:5px");
+				let slider=createEl("input",holder,{className:"slider-range",type:"range",step:.1,min,max,value:min});
+				function constraint(v){
+					return Math.min(max,Math.max(min,v));
+				}
+				function upd(){
+					val.innerText=slider.value=constraint(constraint(parseFloat("0"+(val.innerText.replaceAll(/[^\d.-]/g,"")||d))));
+				}
+				val.onblur=upd;
+				setInterval(()=>{
+					slider.value=parseFloat(slider.value)+Math.sign(val.innerText-slider.value)/10;
+				});
+				slider.oninput=function(){
+					f(parseFloat(val.innerText=this.value));
+				}
+				upd();
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),setMin:v=>upd(slider.min=v),setMax:v=>upd(slider.max=v),set:v=>upd(val.innerText=v)});
+			},
+			addTextBox:function(n="",d="",f=function(){}){
+				let holder=createEl("div",page,{className:"page-textbox"});
+				let container=createEl("div",holder,{},"display:flex;justify-content:space-between");
+				let txt=createEl("span",container,{className:"textbox-title",innerText:n});
+				let val=createEl("div",container,{className:"textbox-value",contentEditable:true,innerText:d},"margin-right:5px");
+				val.onblur=function(){
+					f(val.innerText);
+				}
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>val.onblur(val.innerText=v)});
+			},
+			addDropdown:function(n="",a=[],f=function(){}){
 
-		}
-		return pageMethods;
-	}
-	return mainWindow;
+			}
+		});
+	},onParentClose:function(prevDef=true,f=function(){}){
+		window.addEventListener("beforeunload",e=>{
+			mainWindow.close();
+			try{f()}catch(e){};
+			if(prevDef){
+				e.preventDefault();
+				e.returnValue=1;
+				return!0;
+			}
+		});
+	}});
 };
 return GUI;
