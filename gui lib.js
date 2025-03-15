@@ -178,7 +178,7 @@ const GUI=function(windowName){
 					return Math.min(max,Math.max(min,v));
 				}
 				function upd(){
-					val.innerText=slider.value=constraint(constraint(parseFloat("0"+(val.innerText.replaceAll(/[^\d.-]/g,"")||d))));
+					f(val.innerText=slider.value=constraint(constraint(parseFloat("0"+(val.innerText.replaceAll(/[^\d.-]/g,"")||d)))));
 				}
 				val.onblur=upd;
 				setInterval(()=>{
