@@ -51,6 +51,10 @@ const GUI=function(windowName){
 		user-select:none;
 		overflow-x:scroll;
 	}
+	.container-left{
+		display:flex;
+		justify-content:space-between;
+	}
 	.page-label{
 		background:#333;
 		display:flex;
@@ -68,19 +72,18 @@ const GUI=function(windowName){
 		border-radius:10px;
 		background:#151515;
 	}
-	.page-toggle{
+	.page-toggle,.page-slider,.page-colorpicker{
 		padding:5px 0 0 0;
-		display:flex;
-		justify-content:space-between;
 	}
-	.toggle-title,.slider-title{
+	.toggle-title,.slider-title,.textbox-title,.colorpicker-title{
 		margin-left:5px;
 	}
-	.toggle-button,.slider-value{
+	.toggle-button,.slider-value,.textbox-value{
 		width:15%;
 		text-align:center;
 		border-radius:10px;
 		background:#151515;
+		margin-right:5px;
 	}
 	.toggle-ball{
 		width:40%;
@@ -88,9 +91,6 @@ const GUI=function(windowName){
 		border-radius:100%;
 		background:#fff;
 		transition:all .1s cubic-bezier(.4,0,1,1)
-	}
-	.page-slider{
-		padding:5px 0 0 0;
 	}
 	.slider-range{
 		-webkit-appearance:none;
@@ -114,6 +114,23 @@ const GUI=function(windowName){
 		border-radius:100%;
 		background:#fff;
 		user-select:none;
+	}
+	.textbox-value{
+		border:1px solid #fff;
+	}
+	.colorpicker-value{
+		height:20px;
+		margin-right:5px;
+		border:none;
+		outline:none;
+		-webkit-appearance:none;
+		appearance:none;
+		&::-webkit-color-swatch-wrapper{
+			padding:0px;
+		}
+		&::-webkit-color-swatch{
+			border:none;
+		}
 	}
 	`));
 	doc.title=windowName;
@@ -156,23 +173,23 @@ const GUI=function(windowName){
 				return createMethods({},{remove:()=>holder.remove(),setText:v=>(holder.textContent=v),call:f,setCallback:nf=>(f=nf)});
 			},
 			addToggle:function(n="",d=false,f=function(){}){
-				let holder=createEl("div",page,{className:"page-toggle"});
+				let holder=createEl("div",page,{className:"page-toggle container-left"});
 				let txt=createEl("span",holder,{className:"toggle-title",innerText:n});
 				let btn=createEl("div",holder,{className:"toggle-button"});
 				let ball=createEl("div",btn,{className:"toggle-ball"});
 				holder.onclick=function(){
 					f(d=!d);
-					ball.style.transform="translate("+(d?"15":"")+"0%,0%)";
+					ball.style.transform="translate("+(d?"15":"")+"0%)";
 				}
 				holder.click(d=!d);
-				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>(holder.click(d=!v))});
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>(holder.click(d=!v)),get:()=>d});
 			},
 			addSlider:function(n="",opt,f=function(){}){
 				let min=opt.minimum||opt.min||opt.mn,max=opt.maximum||opt.max||opt.mx,d=opt.default||opt.def||opt.d||min;
 				let holder=createEl("div",page,{className:"page-slider"});
-				let container=createEl("div",holder,{},"display:flex;justify-content:space-between");
+				let container=createEl("div",holder,{className:"container-left"});
 				let txt=createEl("span",container,{className:"slider-title",innerText:n});
-				let val=createEl("div",container,{className:"slider-value",contentEditable:true,innerText:min},"margin-right:5px");
+				let val=createEl("div",container,{className:"slider-value",contentEditable:true,innerText:min});
 				let slider=createEl("input",holder,{className:"slider-range",type:"range",step:.1,min,max,value:min});
 				function constraint(v){
 					return Math.min(max,Math.max(min,v));
@@ -188,20 +205,36 @@ const GUI=function(windowName){
 					f(parseFloat(val.innerText=this.value));
 				}
 				upd();
-				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),setMin:v=>upd(slider.min=v),setMax:v=>upd(slider.max=v),set:v=>upd(val.innerText=v)});
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),setMin:v=>upd(slider.min=v),setMax:v=>upd(slider.max=v),set:v=>upd(val.innerText=v),get:()=>val.innerText});
 			},
 			addTextBox:function(n="",d="",f=function(){}){
-				let holder=createEl("div",page,{className:"page-textbox"});
-				let container=createEl("div",holder,{},"display:flex;justify-content:space-between");
-				let txt=createEl("span",container,{className:"textbox-title",innerText:n});
-				let val=createEl("div",container,{className:"textbox-value",contentEditable:true,innerText:d},"margin-right:5px");
+				let holder=createEl("div",page,{className:"page-textbox container-left"});
+				let txt=createEl("span",holder,{className:"textbox-title",innerText:n});
+				let val=createEl("div",holder,{className:"textbox-value",contentEditable:true,innerText:d});
 				val.onblur=function(){
 					f(val.innerText);
 				}
-				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>val.onblur(val.innerText=v)});
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>val.onblur(val.innerText=v),get:()=>val.innerText});
 			},
-			addDropdown:function(n="",a=[],f=function(){}){
+			addDropdown:function(n="",opt,f=function(){}){
+				let t=opt.type||opt.t;
+				switch(t){
+					case"regular":case"reg":case"dropdown":case"dd":
 
+						break;
+					case"category":case"folder":
+
+						break;
+				}
+			},
+			addColorPicker(n="",d="#000000",f=function(){}){
+				let holder=createEl("div",page,{className:"page-colorpicker container-left"});
+				let txt=createEl("span",holder,{className:"colorpicker-title",innerText:n});
+				let val=createEl("input",holder,{className:"colorpicker-value",type:"color",value:d});
+				val.onchange=function(){
+					f(val.value);
+				}
+				return createMethods({},{remove:()=>holder.remove(),setText:v=>(txt.textContent=v),set:v=>val.onchange(val.value=v),get:()=>val.value});
 			}
 		});
 	},onParentClose:function(prevDef=true,f=function(){}){
