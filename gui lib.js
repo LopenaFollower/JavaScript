@@ -231,7 +231,7 @@ const GUI=function(windowName){
 					let container=createEl("div",holder,{className:"container-rt"});
 					let txt=createEl("span",container,{className:"slider-title",innerText:n});
 					let val=createEl("div",container,{className:"slider-value",tabIndex:-1,contentEditable:true,innerText:min});
-					let slider=createEl("input",holder,{className:"slider-range",type:"range",tabIndex:-1,step:opt.step??1,min,max,value:min},"margin-bottom:5px");
+					let slider=createEl("input",holder,{className:"slider-range",type:"range",tabIndex:-1,step:opt.step??1,min,max,value:constraint(d)},"margin-bottom:5px");
 					function constraint(v){
 						return Math.min(max,Math.max(min,v));
 					}
